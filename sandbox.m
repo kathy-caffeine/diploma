@@ -5,8 +5,8 @@ addpath("healthy-rr-interval\");
 
 m = readmatrix("C:\Users\User\matlab\diploma\signals\013.txt");
 
-% построить ритмограмму
-bar(m);
+% % построить ритмограмму
+% bar(m);
 
 % % вытащить RR из ЭКГ
 % s = size(m);
@@ -19,11 +19,48 @@ bar(m);
 %     rr(i) = abs(x(ind(i+1))-x(ind(i)));
 % end
 
-% % построить граф из RR
-% rr = m(1:100, 1);
-% z = 1:size(rr);
-% nvg = fast_NVG(rr, z, 'w', 0);
-% g_nvg = graph(nvg);
+% построить граф из RR
+rr = m(1:100, 1);
+z = 1:size(rr);
+nvg = fast_NVG(rr, z, 'w', 0);
+g_nvg = graph(nvg);
+
+% векторочек мощностей вершин графа
+p = degree(g_nvg);
+unique_degrees = unique(p); % уникальные степени вершин
+P_k = zeros(1, length(unique_degrees)); % доли вершин по степеням
+inv_k = zeros(1, length(unique_degrees)); % обратное значение степени
+for i = 1:length(unique_degrees)
+    k = unique_degrees(i);
+    P_k(i) = sum(p == k) / length(p); % Доля вершин со степенью k
+    inv_k(i) = 1 / k; % Обратное значение степени
+end
+
+% figure;
+% loglog(unique_degrees, P_k, 'bo-', 'LineWidth', 2); % Логарифмический график P(k)
+% hold on;
+% loglog(unique_degrees, inv_k, 'r--', 'LineWidth', 2); % Логарифмический график 1/k
+% xlabel('Степень k');
+% ylabel('P(k) и 1/k');
+% legend('P(k)', '1/k');
+% title('Распределение степеней и обратных степеней');
+% grid on;
+
+log_P_k = log2(P_k);
+log_inv_k = log2(inv_k);
+
+coefficients = polyfit(log_inv_k, log_P_k, 1);
+PSVG = -coefficients(1); % Наклон с учетом знака
+
+figure;
+plot(log_inv_k, log_P_k, 'bo', 'LineWidth', 2); % Исходные данные
+hold on;
+plot(log_inv_k, -PSVG * log_inv_k + coefficients(2), 'r-', 'LineWidth', 2); % Линия регрессии
+xlabel('log_2(1/k)');
+ylabel('log_2(P(k))');
+legend('Данные', 'Линейная регрессия');
+title(['PSVG = ', num2str(PSVG)]);
+grid on;
 
 % % рисуночек графика с графом сверху
 % % Построение графика сигнала
