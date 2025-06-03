@@ -1,7 +1,7 @@
-function[ecg] = NormalECG(x)
+function[ecg] = NormalECG(x, rate)
 
 %x=0.01:0.01:4;
-li=30/72;  
+li=30/rate;  
 a_pwav=0.25;
 d_pwav=0.09;
 t_pwav=0.16;  
